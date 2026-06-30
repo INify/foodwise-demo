@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,6 +25,17 @@ const HomeScreen = ({ navigation }) => {
   const [modalPrice, setModalPrice] = useState('');
 
   const categories = ['All', 'Halal', 'Non-Halal', 'Veggie'];
+
+  // Pull-to-refresh state (must be before any conditional returns)
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    // Simulate a network fetch with a mock delay
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1500);
+  }, []);
 
   const filteredListings = listings.filter((item) => {
     const matchesSearch = item.foodName.toLowerCase().includes(searchQuery.toLowerCase());
@@ -303,7 +314,20 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <FlatList data={filteredListings} renderItem={({ item }) => <ListingCard listing={item} onPress={() => navigation.navigate('Detail', { listing: item })} />} keyExtractor={(item) => item.id} ListHeaderComponent={renderHeader} ListEmptyComponent={renderEmptyState} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false} />
+      <FlatList
+        data={filteredListings}
+        renderItem={({ item }) => <ListingCard listing={item} onPress={() => navigation.navigate('Detail', { listing: item })} />}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={renderEmptyState}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        progressViewOffset={insets.top + 80}
+        contentInset={{ top: insets.top }}
+        contentOffset={{ x: 0, y: -insets.top }}
+      />
     </View>
   );
 };
