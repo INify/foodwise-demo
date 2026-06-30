@@ -1,16 +1,18 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../styles/colors';
 import { impactData } from '../data/mockData';
 
 const ImpactScreen = () => {
+  const insets = useSafeAreaInsets();
   const { totalMealsSaved, totalCO2Saved, totalVendors, totalCustomers, weeklyData, topVendors } = impactData;
 
   const getMaxMeals = () => Math.max(...weeklyData.map(d => d.meals), 1);
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
         <Text style={styles.headerTitle}>🌍 Our Impact</Text>
         <Text style={styles.headerSubtext}>Together, we're making a difference</Text>
       </View>
@@ -41,7 +43,7 @@ const ImpactScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.gray },
-  header: { backgroundColor: colors.primary, padding: 24, paddingTop: 40, paddingBottom: 32, alignItems: 'center' },
+  header: { backgroundColor: colors.primary, paddingHorizontal: 24, paddingBottom: 32, alignItems: 'center' },
   headerTitle: { fontSize: 28, fontWeight: 'bold', color: colors.white },
   headerSubtext: { fontSize: 16, color: 'rgba(255,255,255,0.8)', marginTop: 4 },
   statsGrid: { flexDirection: 'row', paddingHorizontal: 16, marginTop: -16, gap: 12, marginBottom: 32 },

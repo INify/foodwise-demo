@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './context/AuthContext';
 import { ListingProvider } from './context/ListingContext';
 
@@ -17,6 +18,7 @@ const Stack = createStackNavigator();
 
 export default function App() {
   return (
+    <SafeAreaProvider>
     <AuthProvider>
       <ListingProvider>
       <StatusBar style="auto" />
@@ -72,5 +74,6 @@ export default function App() {
       </NavigationContainer>
       </ListingProvider>
     </AuthProvider>
+    </SafeAreaProvider>
   );
 }

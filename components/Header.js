@@ -1,11 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
 
 const Header = ({ title, showBack = false, onBackPress, showCart = false, cartCount = 0, onCartPress, showImpact = false, onImpactPress }) => {
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
       <View style={styles.leftContainer}>
         {showBack && (
           <TouchableOpacity onPress={onBackPress} style={styles.iconButton}>

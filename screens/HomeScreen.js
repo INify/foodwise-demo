@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
 import ListingCard from '../components/ListingCard';
@@ -7,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useListings } from '../context/ListingContext';
 
 const HomeScreen = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
   const { listings, addListing, updateListing } = useListings();
   const role = user?.role || 'customer';
@@ -118,7 +120,7 @@ const HomeScreen = ({ navigation }) => {
     return (
       <View style={styles.container}>
         {/* Custom Header */}
-        <View style={styles.vendorHeader}>
+        <View style={[styles.vendorHeader, { paddingTop: insets.top + 16 }]}>
           <View>
             <Text style={styles.vendorTitle}>Your Store</Text>
             <Text style={styles.vendorSubtitle}>Vendor Dashboard</Text>
@@ -259,7 +261,7 @@ const HomeScreen = ({ navigation }) => {
 
   // Customer View (original UI)
   const renderHeader = () => (
-    <View style={styles.header}>
+    <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
       {/* Customer Header */}
       <View style={styles.customerHeaderRow}>
         <Text style={styles.customerGreeting}>👋 Welcome back!</Text>
