@@ -11,9 +11,11 @@ const RegisterScreen = ({ navigation }) => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('customer');
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = () => {
     if (name && email && phone && password) {
+      setLoading(true);
       register(name, email, phone, role);
       navigation.navigate('Home', { role });
     }
@@ -54,7 +56,7 @@ const RegisterScreen = ({ navigation }) => {
             <TextInput style={styles.input} placeholder="Create a password" placeholderTextColor={colors.grayDark} value={password} onChangeText={setPassword} secureTextEntry />
           </View>
 
-          <Button title="Create Account" onPress={handleRegister} />
+          <Button title="Create Account" onPress={handleRegister} loading={loading} />
 
           <View style={styles.loginLink}>
             <Text style={styles.loginText}>Already have an account? <Text style={styles.loginHighlight} onPress={() => navigation.navigate('Login')}>Login</Text></Text>

@@ -9,9 +9,11 @@ const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('customer');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = () => {
     if (email && password) {
+      setLoading(true);
       login(email, role);
       navigation.navigate('Home', { role });
     }
@@ -45,7 +47,7 @@ const LoginScreen = ({ navigation }) => {
             <TextInput style={styles.input} placeholder="Enter your password" placeholderTextColor={colors.grayDark} value={password} onChangeText={setPassword} secureTextEntry />
           </View>
           
-          <Button title="Login" onPress={handleLogin} />
+          <Button title="Login" onPress={handleLogin} loading={loading} />
 
           <TouchableOpacity style={styles.registerLink} onPress={() => navigation.navigate('Register')}>
             <Text style={styles.registerText}>Don't have an account? <Text style={styles.registerHighlight}>Register</Text></Text>
