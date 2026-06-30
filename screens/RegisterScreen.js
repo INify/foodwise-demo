@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from 'react-native';
 import { colors } from '../styles/colors';
 import Button from '../components/Button';
@@ -12,6 +12,15 @@ const RegisterScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('customer');
   const [loading, setLoading] = useState(false);
+
+  // Reset loading state when screen comes into focus
+  // Prevents infinite loading spinner when logging out rapidly on Android
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   const handleRegister = () => {
     if (name && email && phone && password) {

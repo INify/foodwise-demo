@@ -215,11 +215,6 @@ const HomeScreen = ({ navigation }) => {
             )}
           </View>
 
-          <TouchableOpacity style={styles.logoutButtonFull} onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={20} color="#C62828" />
-            <Text style={styles.logoutText}>Logout</Text>
-          </TouchableOpacity>
-
           <View style={{ height: 40 }} />
         </ScrollView>
 
