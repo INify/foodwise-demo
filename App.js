@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from './context/AuthContext';
+import { ListingProvider } from './context/ListingContext';
 
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
@@ -17,6 +18,7 @@ const Stack = createStackNavigator();
 export default function App() {
   return (
     <AuthProvider>
+      <ListingProvider>
       <StatusBar style="auto" />
       <NavigationContainer>
         <Stack.Navigator 
@@ -68,6 +70,7 @@ export default function App() {
           />
         </Stack.Navigator>
       </NavigationContainer>
+      </ListingProvider>
     </AuthProvider>
   );
 }
