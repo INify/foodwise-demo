@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from 'react-native';
 import { colors } from '../styles/colors';
 import Button from '../components/Button';
+import { useAuth } from '../context/AuthContext';
 
 const RegisterScreen = ({ navigation }) => {
+  const { register } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -11,7 +13,10 @@ const RegisterScreen = ({ navigation }) => {
   const [role, setRole] = useState('customer');
 
   const handleRegister = () => {
-    if (name && email && phone && password) navigation.navigate('Login');
+    if (name && email && phone && password) {
+      register(name, email, phone, role);
+      navigation.navigate('Home', { role });
+    }
   };
 
   return (
@@ -24,12 +29,12 @@ const RegisterScreen = ({ navigation }) => {
 
         <View style={styles.form}>
           <View style={styles.roleContainer}>
-            <View style={[styles.roleButton, role === 'customer' && styles.roleButtonActive]}>
+            <TouchableOpacity style={[styles.roleButton, role === 'customer' && styles.roleButtonActive]} onPress={() => setRole('customer')}>
               <Text style={[styles.roleText, role === 'customer' && styles.roleTextActive]}>👤 Customer</Text>
-            </View>
-            <View style={[styles.roleButton, role === 'vendor' && styles.roleButtonActive]}>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.roleButton, role === 'vendor' && styles.roleButtonActive]} onPress={() => setRole('vendor')}>
               <Text style={[styles.roleText, role === 'vendor' && styles.roleTextActive]}>🏪 Vendor</Text>
-            </View>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.inputContainer}>

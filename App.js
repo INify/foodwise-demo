@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
+import { AuthProvider } from './context/AuthContext';
 
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
@@ -15,7 +16,7 @@ const Stack = createStackNavigator();
 
 export default function App() {
   return (
-    <>
+    <AuthProvider>
       <StatusBar style="auto" />
       <NavigationContainer>
         <Stack.Navigator 
@@ -43,7 +44,7 @@ export default function App() {
           <Stack.Screen 
             name="Home" 
             component={HomeScreen} 
-            options={{ title: 'FoodWise' }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen 
             name="Detail" 
@@ -67,6 +68,6 @@ export default function App() {
           />
         </Stack.Navigator>
       </NavigationContainer>
-    </>
+    </AuthProvider>
   );
 }

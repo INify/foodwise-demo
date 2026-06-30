@@ -2,14 +2,19 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { colors } from '../styles/colors';
 import Button from '../components/Button';
+import { useAuth } from '../context/AuthContext';
 
 const LoginScreen = ({ navigation }) => {
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('customer');
 
   const handleLogin = () => {
-    if (email && password) navigation.navigate('Home');
+    if (email && password) {
+      login(email, role);
+      navigation.navigate('Home', { role });
+    }
   };
 
   return (
