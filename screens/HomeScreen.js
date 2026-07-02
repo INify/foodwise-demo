@@ -16,6 +16,7 @@ const HomeScreen = ({ navigation }) => {
   const role = user?.role || 'customer';
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [timeRange, setTimeRange] = useState('weekly');
 
   const categories = ['All', 'Halal', 'Non-Halal', 'Veggie'];
 
@@ -62,12 +63,25 @@ const HomeScreen = ({ navigation }) => {
         <Ionicons name="search" size={20} color={colors.grayDark} />
         <TextInput style={styles.searchInput} placeholder="Search for food..." placeholderTextColor={colors.grayDark} value={searchQuery} onChangeText={setSearchQuery} />
       </View>
+      <View style={styles.timeRangeRow}>
+        {['daily', 'weekly', 'monthly'].map((range) => (
+          <TouchableOpacity
+            key={range}
+            style={[styles.timeRangeButton, timeRange === range && styles.timeRangeButtonActive]}
+            onPress={() => setTimeRange(range)}
+          >
+            <Text style={[styles.timeRangeText, timeRange === range && styles.timeRangeTextActive]}>
+              {range.charAt(0).toUpperCase() + range.slice(1)}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
       <View style={styles.impactCard}>
-        <View style={styles.impactItem}><Text style={styles.impactNumber}>{impactData.totalMealsSaved}</Text><Text style={styles.impactLabel}>Meals Saved</Text></View>
+        <View style={styles.impactItem}><Text style={styles.impactNumber}>{impactData[timeRange].mealsSaved}</Text><Text style={styles.impactLabel}>Meals Saved</Text></View>
         <View style={styles.impactDivider} />
-        <View style={styles.impactItem}><Text style={styles.impactNumber}>{impactData.totalCO2Saved}kg</Text><Text style={styles.impactLabel}>CO₂ Saved</Text></View>
+        <View style={styles.impactItem}><Text style={styles.impactNumber}>{impactData[timeRange].co2Saved}kg</Text><Text style={styles.impactLabel}>CO₂ Saved</Text></View>
         <View style={styles.impactDivider} />
-        <View style={styles.impactItem}><Text style={styles.impactNumber}>{impactData.totalVendors}</Text><Text style={styles.impactLabel}>Vendors</Text></View>
+        <View style={styles.impactItem}><Text style={styles.impactNumber}>{impactData[timeRange].vendors}</Text><Text style={styles.impactLabel}>Vendors</Text></View>
       </View>
       <View style={styles.categoryContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -120,6 +134,11 @@ const styles = StyleSheet.create({
 
   searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.gray, borderRadius: 12, paddingHorizontal: 16, marginBottom: 16 },
   searchInput: { flex: 1, paddingVertical: 12, paddingHorizontal: 12, fontSize: 16 },
+  timeRangeRow: { flexDirection: 'row', marginBottom: 12, gap: 8 },
+  timeRangeButton: { flex: 1, paddingVertical: 8, borderRadius: 8, backgroundColor: colors.gray, alignItems: 'center' },
+  timeRangeButtonActive: { backgroundColor: colors.primary },
+  timeRangeText: { fontSize: 13, fontWeight: '600', color: colors.grayDark },
+  timeRangeTextActive: { color: colors.white },
   impactCard: { flexDirection: 'row', backgroundColor: colors.primary, borderRadius: 16, padding: 16, marginBottom: 16, justifyContent: 'space-around' },
   impactItem: { alignItems: 'center' },
   impactNumber: { fontSize: 20, fontWeight: 'bold', color: colors.white },

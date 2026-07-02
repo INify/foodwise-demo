@@ -135,4 +135,23 @@ export const impactData = {
     { name: "Baker's Delight", saved: 32 },
     { name: 'Mamak Corner', saved: 28 },
   ],
+  // Time-range specific data for the dashboard toggles
+  daily: {
+    mealsSaved: 12,
+    co2Saved: 6.2,
+    vendors: 5,
+  },
+  weekly: {
+    mealsSaved: 254,
+    co2Saved: 125.5,
+    vendors: 12,
+  },
+  monthly: {
+    mealsSaved: 980,
+    co2Saved: 485,
+    vendors: 18,
+  },
 };
+
+// Convenience helper for time-range field mapping
+export const impactTimeRanges = ['daily', 'weekly', 'monthly'];
