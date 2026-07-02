@@ -24,7 +24,11 @@ const ListingCard = ({ listing, onPress }) => {
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
-      <Image source={{ uri: image }} style={styles.image} />
+      <Image 
+        source={typeof image === 'string' ? { uri: image } : image} 
+        style={[styles.image, isBlindBox && styles.blindBoxImage]}
+        resizeMode={isBlindBox ? 'contain' : 'cover'}
+      />
       {isBlindBox && (
         <View style={styles.blindBoxBadge}>
           <Text style={styles.blindBoxText}>🎁 BLIND BOX</Text>
@@ -56,6 +60,7 @@ const ListingCard = ({ listing, onPress }) => {
 const styles = StyleSheet.create({
   card: { backgroundColor: colors.white, borderRadius: 16, marginHorizontal: 16, marginVertical: 8, shadowColor: colors.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 4, overflow: 'hidden' },
   image: { width: '100%', height: 180, backgroundColor: colors.gray },
+  blindBoxImage: { backgroundColor: '#FFF3E0' },
   blindBoxBadge: { position: 'absolute', top: 12, right: 12, backgroundColor: colors.secondary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, shadowColor: colors.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 5 },
   blindBoxText: { color: colors.white, fontWeight: 'bold', fontSize: 12 },
   content: { padding: 16 },

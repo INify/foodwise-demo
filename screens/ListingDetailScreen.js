@@ -15,7 +15,11 @@ const ListingDetailScreen = ({ route, navigation }) => {
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.imageContainer}>
-        <Image source={{ uri: image }} style={styles.image} />
+        <Image
+          source={typeof image === 'string' ? { uri: image } : image}
+          style={[styles.image, isBlindBox && styles.blindBoxImage]}
+          resizeMode={isBlindBox ? 'contain' : 'cover'}
+        />
         {isBlindBox && <View style={styles.blindBoxBadge}><Text style={styles.blindBoxText}>🎁 BLIND BOX</Text></View>}
         <View style={[styles.priceBadge, { backgroundColor: getPriceTagColor() }]}><Text style={styles.priceBadgeText}>{getPriceLabel()}</Text></View>
       </View>
@@ -62,6 +66,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white },
   imageContainer: { position: 'relative' },
   image: { width: '100%', height: 280, backgroundColor: colors.gray },
+  blindBoxImage: { backgroundColor: '#FFF3E0' },
   blindBoxBadge: { position: 'absolute', top: 16, right: 16, backgroundColor: colors.secondary, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 24, shadowColor: colors.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 5 },
   blindBoxText: { color: colors.white, fontWeight: 'bold', fontSize: 14 },
   priceBadge: { position: 'absolute', bottom: 16, left: 16, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 24 },

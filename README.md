@@ -68,6 +68,10 @@ This will open the Expo developer tools in your browser and display a QR code in
 | `npx expo start --ios`     | Start and launch on iOS       |
 | `npx expo start --web`     | Start and launch on web       |
 
+## Attributions
+
+- **Mystery Box Icon** — <a href="https://www.flaticon.com/free-icons/mystery-box" title="mystery box icons">Mystery box icons created by syafii5758 - Flaticon</a>
+
 ## Tech Stack
 
 - **Framework:** [Expo](https://expo.dev/) (SDK 54) / [React Native](https://reactnative.dev/) (0.81)
