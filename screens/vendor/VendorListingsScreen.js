@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../styles/colors';
-import { useListings } from '../context/ListingContext';
-import { useAuth } from '../context/AuthContext';
+import { colors } from '../../styles/colors';
+import { useListings } from '../../context/ListingContext';
+import { useAuth } from '../../context/AuthContext';
 
-const VendorDashboard = ({ navigation, onLogout }) => {
+const VendorListingsScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { listings, addListing, updateListing } = useListings();
@@ -14,27 +14,12 @@ const VendorDashboard = ({ navigation, onLogout }) => {
 
   const vendorListings = listings.filter(l => l.vendorName === vendorName);
 
-  const vendorStats = {
-    totalListings: vendorListings.length,
-    totalOrders: 24,
-    pendingPickups: 7,
-    revenue: 156.50,
-  };
-
-  const recentOrders = [
-    { id: 'ORD-001', customer: 'Alice', items: 'Nasi Lemak × 2', status: 'Pending', time: '10 min ago' },
-    { id: 'ORD-002', customer: 'Bob', items: 'Chicken Rice × 1', status: 'Ready', time: '25 min ago' },
-    { id: 'ORD-003', customer: 'Carol', items: 'Roti Canai × 3', status: 'Picked Up', time: '1 hour ago' },
-  ];
-
   const [modalVisible, setModalVisible] = useState(false);
   const [editingListing, setEditingListing] = useState(null);
   const [modalFoodName, setModalFoodName] = useState('');
   const [modalPrice, setModalPrice] = useState('');
   const [modalPickupStart, setModalPickupStart] = useState('');
   const [modalPickupEnd, setModalPickupEnd] = useState('');
-  const [pickupModalVisible, setPickupModalVisible] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(null);
 
   const getTodayString = () => {
     const now = new Date();
@@ -70,12 +55,10 @@ const VendorDashboard = ({ navigation, onLogout }) => {
 
     const today = getTodayString();
 
-    // Build pickup start/end from user input or default to today's date + evening times
     let pickupStart = modalPickupStart.trim();
     let pickupEnd = modalPickupEnd.trim();
 
     if (pickupStart && !pickupStart.includes('-')) {
-      // User only entered a time like "18:00", prepend today's date
       pickupStart = `${today} ${pickupStart}`;
     }
     if (pickupEnd && !pickupEnd.includes('-')) {
@@ -130,68 +113,16 @@ const VendorDashboard = ({ navigation, onLogout }) => {
   return (
     <View style={styles.container}>
       <View style={[styles.vendorHeader, { paddingTop: insets.top + 16 }]}>
-        <View>
-          <Text style={styles.vendorTitle}>{vendorName}</Text>
-          <Text style={styles.vendorSubtitle}>Vendor Dashboard</Text>
-        </View>
-        <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
-          <Ionicons name="log-out-outline" size={22} color={colors.white} />
+        <TouchableOpacity style={styles.menuButton} onPress={() => navigation.toggleDrawer()}>
+          <Ionicons name="menu" size={28} color={colors.white} />
         </TouchableOpacity>
+        <View style={styles.headerTextContainer}>
+          <Text style={styles.vendorTitle}>{vendorName}</Text>
+          <Text style={styles.vendorSubtitle}>Your Listings</Text>
+        </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} style={styles.vendorScroll}>
-        <View style={styles.statsRow}>
-          <View style={[styles.statCard, { backgroundColor: '#E8F5E9' }]}>
-            <Ionicons name="restaurant" size={24} color={colors.primary} />
-            <Text style={styles.statNumber}>{vendorStats.totalListings}</Text>
-            <Text style={styles.statLabel}>Listings</Text>
-          </View>
-          <View style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
-            <Ionicons name="receipt" size={24} color={colors.secondary} />
-            <Text style={styles.statNumber}>{vendorStats.totalOrders}</Text>
-            <Text style={styles.statLabel}>Total Orders</Text>
-          </View>
-          <View style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
-            <Ionicons name="time" size={24} color="#1565C0" />
-            <Text style={styles.statNumber}>{vendorStats.pendingPickups}</Text>
-            <Text style={styles.statLabel}>Pending</Text>
-          </View>
-          <View style={[styles.statCard, { backgroundColor: '#FCE4EC' }]}>
-            <Ionicons name="cash" size={24} color="#C62828" />
-            <Text style={styles.statNumber}>RM{vendorStats.revenue.toFixed(2)}</Text>
-            <Text style={styles.statLabel}>Revenue</Text>
-          </View>
-        </View>
-
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Recent Orders</Text>
-          {recentOrders.map((order) => (
-            <TouchableOpacity
-              key={order.id}
-              style={styles.orderItem}
-              onPress={() => {
-                setSelectedOrder(order);
-                setPickupModalVisible(true);
-              }}
-            >
-              <View style={styles.orderLeft}>
-                <Text style={styles.orderCustomer}>{order.customer}</Text>
-                <Text style={styles.orderItems}>{order.items}</Text>
-                <Text style={styles.orderTime}>{order.time}</Text>
-              </View>
-              <View style={[styles.orderStatus, 
-                { backgroundColor: order.status === 'Pending' ? '#FFF3E0' : 
-                  order.status === 'Ready' ? '#E8F5E9' : '#F5F5F5' }]}>
-                <Text style={[styles.orderStatusText, 
-                  { color: order.status === 'Pending' ? colors.secondary : 
-                    order.status === 'Ready' ? colors.success : colors.grayDark }]}>
-                  {order.status}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Your Listings</Text>
@@ -280,91 +211,21 @@ const VendorDashboard = ({ navigation, onLogout }) => {
           </View>
         </View>
       </Modal>
-
-      {/* Pickup Details Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={pickupModalVisible}
-        onRequestClose={() => setPickupModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.pickupModalContent}>
-            <View style={styles.pickupModalHeader}>
-              <Text style={styles.pickupModalTitle}>Pickup Details</Text>
-              <TouchableOpacity onPress={() => setPickupModalVisible(false)}>
-                <Ionicons name="close" size={24} color={colors.grayDark} />
-              </TouchableOpacity>
-            </View>
-
-            {selectedOrder && (
-              <>
-                <View style={[styles.pickupStatusBadge,
-                  { backgroundColor: selectedOrder.status === 'Pending' ? '#FFF3E0' :
-                    selectedOrder.status === 'Ready' ? '#E8F5E9' : '#F5F5F5' }]}>
-                  <Ionicons
-                    name={selectedOrder.status === 'Pending' ? 'time' : selectedOrder.status === 'Ready' ? 'checkmark-circle' : 'checkmark-done'}
-                    size={20}
-                    color={selectedOrder.status === 'Pending' ? colors.secondary :
-                      selectedOrder.status === 'Ready' ? colors.success : colors.grayDark}
-                  />
-                  <Text style={[styles.pickupStatusText,
-                    { color: selectedOrder.status === 'Pending' ? colors.secondary :
-                      selectedOrder.status === 'Ready' ? colors.success : colors.grayDark }]}>
-                    {selectedOrder.status}
-                  </Text>
-                </View>
-
-                <View style={styles.pickupDetailRow}>
-                  <Ionicons name="person-outline" size={18} color={colors.grayDark} />
-                  <Text style={styles.pickupDetailLabel}>Customer</Text>
-                  <Text style={styles.pickupDetailValue}>{selectedOrder.customer}</Text>
-                </View>
-                <View style={styles.pickupDetailRow}>
-                  <Ionicons name="receipt-outline" size={18} color={colors.grayDark} />
-                  <Text style={styles.pickupDetailLabel}>Order ID</Text>
-                  <Text style={styles.pickupDetailValue}>{selectedOrder.id}</Text>
-                </View>
-                <View style={styles.pickupDetailRow}>
-                  <Ionicons name="cart-outline" size={18} color={colors.grayDark} />
-                  <Text style={styles.pickupDetailLabel}>Items</Text>
-                  <Text style={styles.pickupDetailValue}>{selectedOrder.items}</Text>
-                </View>
-                <View style={styles.pickupDetailRow}>
-                  <Ionicons name="time-outline" size={18} color={colors.grayDark} />
-                  <Text style={styles.pickupDetailLabel}>Ordered</Text>
-                  <Text style={styles.pickupDetailValue}>{selectedOrder.time}</Text>
-                </View>
-              </>
-            )}
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.gray },
-  vendorHeader: { backgroundColor: colors.primary, paddingHorizontal: 16, paddingVertical: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  vendorHeader: { backgroundColor: colors.primary, paddingHorizontal: 16, paddingVertical: 16, flexDirection: 'row', alignItems: 'center' },
+  menuButton: { padding: 4, marginRight: 12 },
+  headerTextContainer: { flex: 1 },
   vendorTitle: { fontSize: 22, fontWeight: 'bold', color: colors.white },
   vendorSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
   vendorScroll: { flex: 1 },
-  logoutButton: { padding: 8 },
-  statsRow: { flexDirection: 'row', flexWrap: 'wrap', padding: 12, gap: 8 },
-  statCard: { width: '47%', borderRadius: 16, padding: 16, marginBottom: 8, shadowColor: colors.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
-  statNumber: { fontSize: 20, fontWeight: 'bold', color: colors.dark, marginTop: 8 },
-  statLabel: { fontSize: 13, color: colors.grayDark, marginTop: 2 },
-  sectionCard: { backgroundColor: colors.white, borderRadius: 16, marginHorizontal: 12, marginBottom: 12, padding: 16, shadowColor: colors.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
+  sectionCard: { backgroundColor: colors.white, borderRadius: 16, marginHorizontal: 12, marginTop: 16, padding: 16, shadowColor: colors.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sectionTitle: { fontSize: 18, fontWeight: '600', color: colors.dark, marginBottom: 12 },
-  orderItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.gray },
-  orderLeft: { flex: 1 },
-  orderCustomer: { fontSize: 15, fontWeight: '600', color: colors.dark },
-  orderItems: { fontSize: 13, color: colors.grayDark, marginTop: 2 },
-  orderTime: { fontSize: 12, color: '#999', marginTop: 2 },
-  orderStatus: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
-  orderStatusText: { fontSize: 12, fontWeight: '600' },
   addButton: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   addButtonText: { fontSize: 14, color: colors.primary, fontWeight: '500', marginLeft: 4 },
   vendorListingItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.gray },
@@ -383,14 +244,6 @@ const styles = StyleSheet.create({
   modalCancelText: { fontSize: 16, fontWeight: '600', color: colors.grayDark },
   modalSaveButton: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: colors.primary, marginLeft: 8, alignItems: 'center' },
   modalSaveText: { fontSize: 16, fontWeight: '600', color: colors.white },
-  pickupModalContent: { backgroundColor: colors.white, borderRadius: 20, padding: 24, width: '85%', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 },
-  pickupModalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  pickupModalTitle: { fontSize: 20, fontWeight: 'bold', color: colors.dark },
-  pickupStatusBadge: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 12, borderRadius: 12, marginBottom: 16, gap: 6 },
-  pickupStatusText: { fontSize: 16, fontWeight: 'bold' },
-  pickupDetailRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.gray, gap: 8 },
-  pickupDetailLabel: { fontSize: 14, color: colors.grayDark, flex: 1, marginLeft: 4 },
-  pickupDetailValue: { fontSize: 14, color: colors.dark, fontWeight: '500', textAlign: 'right' },
 });
 
-export default VendorDashboard;
+export default VendorListingsScreen;
