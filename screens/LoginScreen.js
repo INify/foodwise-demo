@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 
 const LoginScreen = ({ navigation }) => {
   const { login } = useAuth();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('customer');
@@ -21,9 +22,11 @@ const LoginScreen = ({ navigation }) => {
   }, [navigation]);
 
   const handleLogin = () => {
+    // Vendor requires store name; customer only needs email + password
+    if (role === 'vendor' && !name) return;
     if (email && password) {
       setLoading(true);
-      login(email, role);
+      login(email, role, role === 'vendor' ? name : null);
       navigation.navigate('Home', { role });
     }
   };
@@ -47,6 +50,18 @@ const LoginScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
+          {role === 'vendor' && (
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Store Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="e.g. Kedai Kopi JB"
+                placeholderTextColor={colors.grayDark}
+                value={name}
+                onChangeText={setName}
+              />
+            </View>
+          )}
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Email</Text>
             <TextInput style={styles.input} placeholder="Enter your email" placeholderTextColor={colors.grayDark} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />

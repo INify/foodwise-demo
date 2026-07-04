@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, Image, Alert, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors } from '../styles/colors';
 import { useListings } from '../context/ListingContext';
 import { useAuth } from '../context/AuthContext';
@@ -43,8 +45,14 @@ const VendorDashboard = ({ navigation, onLogout }) => {
   const [editingListing, setEditingListing] = useState(null);
   const [modalFoodName, setModalFoodName] = useState('');
   const [modalPrice, setModalPrice] = useState('');
-  const [modalPickupStart, setModalPickupStart] = useState('');
-  const [modalPickupEnd, setModalPickupEnd] = useState('');
+  const [modalPickupStart, setModalPickupStart] = useState(null);
+  const [modalPickupEnd, setModalPickupEnd] = useState(null);
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+  const [modalItemType, setModalItemType] = useState('food');
+  const [modalCategory, setModalCategory] = useState('Halal');
+  const [modalImage, setModalImage] = useState(null);
+  const [modalOriginalPrice, setModalOriginalPrice] = useState('');
   const [pickupModalVisible, setPickupModalVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
@@ -60,42 +68,110 @@ const VendorDashboard = ({ navigation, onLogout }) => {
     setEditingListing(null);
     setModalFoodName('');
     setModalPrice('');
-    setModalPickupStart('');
-    setModalPickupEnd('');
+    setModalPickupStart(null);
+    setModalPickupEnd(null);
+    setShowStartPicker(false);
+    setShowEndPicker(false);
+    setModalItemType('food');
+    setModalCategory('Halal');
+    setModalImage(null);
+    setModalOriginalPrice('');
     setModalVisible(true);
+  };
+
+  const parseTimeString = (timeStr) => {
+    if (!timeStr) return null;
+    const date = new Date(timeStr);
+    return isNaN(date.getTime()) ? null : date;
   };
 
   const handleOpenEditModal = (listing) => {
     setEditingListing(listing);
     setModalFoodName(listing.foodName);
     setModalPrice(String(listing.price));
-    setModalPickupStart(listing.pickupStart || '');
-    setModalPickupEnd(listing.pickupEnd || '');
+    setModalPickupStart(parseTimeString(listing.pickupStart));
+    setModalPickupEnd(parseTimeString(listing.pickupEnd));
+    setShowStartPicker(false);
+    setShowEndPicker(false);
+    setModalItemType(listing.isBlindBox ? 'blindbox' : 'food');
+    setModalCategory(listing.category || 'Halal');
+    setModalImage(listing.isBlindBox ? null : (typeof listing.image === 'string' ? listing.image : null));
+    setModalOriginalPrice(listing.originalPrice ? String(listing.originalPrice) : '');
     setModalVisible(true);
   };
 
+  const formatTimeForDisplay = (date) => {
+    if (!date) return 'Select time';
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
+  const formatTimeForStorage = (date) => {
+    if (!date) return null;
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${getTodayString()} ${hours}:${minutes}`;
+  };
+
+  const handleStartTimeChange = (event, selectedDate) => {
+    setShowStartPicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setModalPickupStart(selectedDate);
+    }
+  };
+
+  const handleEndTimeChange = (event, selectedDate) => {
+    setShowEndPicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setModalPickupEnd(selectedDate);
+    }
+  };
+
   const handleSaveListing = () => {
-    if (!modalFoodName.trim() || !modalPrice.trim()) return;
+    if (!modalFoodName.trim() || !modalPrice.trim()) {
+      Alert.alert('Missing Information', 'Please fill in the food name and price.');
+      return;
+    }
 
     const price = parseFloat(modalPrice);
-    if (isNaN(price) || price < 0) return;
+    if (isNaN(price) || price < 0) {
+      Alert.alert('Invalid Price', 'Please enter a valid price.');
+      return;
+    }
+
+    const isBlindBox = modalItemType === 'blindbox';
+
+    // Regular food items require an image; blind boxes use the mystery box asset
+    if (!isBlindBox && !modalImage) {
+      Alert.alert('Image Required', 'Please upload an image for regular food items. Blind box items do not require an image.');
+      return;
+    }
+
+    // Determine price tier: free (price=0), special (blind box), or discounted
+    const priceTier = price === 0 ? 'free' : isBlindBox ? 'special' : 'discounted';
+
+    // Parse optional original price; 0 if not provided
+    const originalPrice = modalOriginalPrice.trim() ? parseFloat(modalOriginalPrice) : 0;
 
     const today = getTodayString();
 
-    let pickupStart = modalPickupStart.trim();
-    let pickupEnd = modalPickupEnd.trim();
+    const pickupStart = formatTimeForStorage(modalPickupStart);
+    const pickupEnd = formatTimeForStorage(modalPickupEnd);
 
-    if (pickupStart && !pickupStart.includes('-')) {
-      pickupStart = `${today} ${pickupStart}`;
-    }
-    if (pickupEnd && !pickupEnd.includes('-')) {
-      pickupEnd = `${today} ${pickupEnd}`;
-    }
+    const listingImage = isBlindBox
+      ? require('../assets/images/mystery-box.png')
+      : modalImage;
 
     if (editingListing) {
       updateListing(editingListing.id, {
         foodName: modalFoodName.trim(),
         price,
+        isBlindBox,
+        category: modalCategory,
+        priceTier,
+        originalPrice,
+        image: listingImage,
         ...(pickupStart ? { pickupStart } : {}),
         ...(pickupEnd ? { pickupEnd } : {}),
       });
@@ -105,16 +181,16 @@ const VendorDashboard = ({ navigation, onLogout }) => {
         vendorName: vendorName,
         vendorImage: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=50&h=50&fit=crop&crop=face',
         foodName: modalFoodName.trim(),
-        description: 'Fresh and delicious!',
-        category: 'Halal',
-        priceTier: 'discounted',
+        description: isBlindBox ? 'Surprise item! What will you get?' : 'Fresh and delicious!',
+        category: modalCategory,
+        priceTier: priceTier,
         price: price,
-        originalPrice: Math.round(price * 2),
+        originalPrice: originalPrice,
         quantity: 10,
         pickupStart: pickupStart || `${today} 18:00`,
         pickupEnd: pickupEnd || `${today} 19:00`,
-        image: 'https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400&h=300&fit=crop',
-        isBlindBox: false,
+        image: listingImage,
+        isBlindBox: isBlindBox,
         distance: '0.0 km',
       };
       addListing(newListing);
@@ -123,8 +199,14 @@ const VendorDashboard = ({ navigation, onLogout }) => {
     setModalVisible(false);
     setModalFoodName('');
     setModalPrice('');
-    setModalPickupStart('');
-    setModalPickupEnd('');
+    setModalPickupStart(null);
+    setModalPickupEnd(null);
+    setShowStartPicker(false);
+    setShowEndPicker(false);
+    setModalItemType('food');
+    setModalCategory('Halal');
+    setModalImage(null);
+    setModalOriginalPrice('');
     setEditingListing(null);
   };
 
@@ -132,9 +214,33 @@ const VendorDashboard = ({ navigation, onLogout }) => {
     setModalVisible(false);
     setModalFoodName('');
     setModalPrice('');
-    setModalPickupStart('');
-    setModalPickupEnd('');
+    setModalPickupStart(null);
+    setModalPickupEnd(null);
+    setShowStartPicker(false);
+    setShowEndPicker(false);
+    setModalItemType('food');
+    setModalCategory('Halal');
+    setModalImage(null);
+    setModalOriginalPrice('');
     setEditingListing(null);
+  };
+
+  const handlePickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'Sorry, we need camera roll permissions to upload images!');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: false,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setModalImage(result.assets[0].uri);
+    }
   };
 
   return (
@@ -246,6 +352,28 @@ const VendorDashboard = ({ navigation, onLogout }) => {
               {editingListing ? 'Edit Food Item' : 'Add New Food Item'}
             </Text>
 
+          <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+            <Text style={styles.modalLabel}>Item Type</Text>
+            <View style={styles.itemTypeContainer}>
+              <TouchableOpacity
+                style={[styles.itemTypeButton, modalItemType === 'food' && styles.itemTypeButtonActive]}
+                onPress={() => setModalItemType('food')}
+              >
+                <Ionicons name="restaurant-outline" size={18} color={modalItemType === 'food' ? colors.white : colors.grayDark} />
+                <Text style={[styles.itemTypeText, modalItemType === 'food' && styles.itemTypeTextActive]}>Regular Food</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.itemTypeButton, modalItemType === 'blindbox' && styles.itemTypeButtonActive]}
+                onPress={() => {
+                  setModalItemType('blindbox');
+                  setModalImage(null);
+                }}
+              >
+                <Ionicons name="gift-outline" size={18} color={modalItemType === 'blindbox' ? colors.white : colors.grayDark} />
+                <Text style={[styles.itemTypeText, modalItemType === 'blindbox' && styles.itemTypeTextActive]}>Blind Box</Text>
+              </TouchableOpacity>
+            </View>
+
             <Text style={styles.modalLabel}>Food Name</Text>
             <TextInput
               style={styles.modalInput}
@@ -255,33 +383,112 @@ const VendorDashboard = ({ navigation, onLogout }) => {
               onChangeText={setModalFoodName}
             />
 
-            <Text style={styles.modalLabel}>Price (RM)</Text>
+            <Text style={styles.modalLabel}>Category</Text>
+            <View style={styles.categoryContainer}>
+              <TouchableOpacity
+                style={[styles.categoryButton, modalCategory === 'Halal' && styles.categoryButtonActive]}
+                onPress={() => setModalCategory('Halal')}
+              >
+                <Text style={[styles.categoryText, modalCategory === 'Halal' && styles.categoryTextActive]}>Halal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.categoryButton, modalCategory === 'Non-Halal' && styles.categoryButtonActive]}
+                onPress={() => setModalCategory('Non-Halal')}
+              >
+                <Text style={[styles.categoryText, modalCategory === 'Non-Halal' && styles.categoryTextActive]}>Non-Halal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.categoryButton, modalCategory === 'Vegetarian' && styles.categoryButtonActive]}
+                onPress={() => setModalCategory('Vegetarian')}
+              >
+                <Text style={[styles.categoryText, modalCategory === 'Vegetarian' && styles.categoryTextActive]}>Vegetarian</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalLabel}>Price (RM) {modalPrice === '0' || modalPrice === '0.00' ? '(Free!)' : ''}</Text>
             <TextInput
               style={styles.modalInput}
-              placeholder="e.g. 4.00"
+              placeholder="e.g. 4.00 (enter 0 for free)"
               placeholderTextColor="#999"
               value={modalPrice}
               onChangeText={setModalPrice}
               keyboardType="decimal-pad"
             />
 
-            <Text style={styles.modalLabel}>Pickup Start Time (HH:MM)</Text>
+            <Text style={styles.modalLabel}>Original Price (RM) — Optional</Text>
             <TextInput
               style={styles.modalInput}
-              placeholder="e.g. 18:00"
+              placeholder="e.g. 8.00 (leave empty if none)"
               placeholderTextColor="#999"
-              value={modalPickupStart}
-              onChangeText={setModalPickupStart}
+              value={modalOriginalPrice}
+              onChangeText={setModalOriginalPrice}
+              keyboardType="decimal-pad"
             />
 
-            <Text style={styles.modalLabel}>Pickup End Time (HH:MM)</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="e.g. 19:00"
-              placeholderTextColor="#999"
-              value={modalPickupEnd}
-              onChangeText={setModalPickupEnd}
-            />
+            <Text style={styles.modalLabel}>Pickup Start Time</Text>
+            <TouchableOpacity
+              style={styles.timePickerButton}
+              onPress={() => setShowStartPicker(true)}
+            >
+              <Ionicons name="time-outline" size={20} color={colors.primary} />
+              <Text style={[styles.timePickerText, !modalPickupStart && styles.timePickerPlaceholder]}>
+                {formatTimeForDisplay(modalPickupStart)}
+              </Text>
+            </TouchableOpacity>
+
+            {showStartPicker && (
+              <DateTimePicker
+                value={modalPickupStart || new Date()}
+                mode="time"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={handleStartTimeChange}
+              />
+            )}
+
+            <Text style={styles.modalLabel}>Pickup End Time</Text>
+            <TouchableOpacity
+              style={styles.timePickerButton}
+              onPress={() => setShowEndPicker(true)}
+            >
+              <Ionicons name="time-outline" size={20} color={colors.primary} />
+              <Text style={[styles.timePickerText, !modalPickupEnd && styles.timePickerPlaceholder]}>
+                {formatTimeForDisplay(modalPickupEnd)}
+              </Text>
+            </TouchableOpacity>
+
+            {showEndPicker && (
+              <DateTimePicker
+                value={modalPickupEnd || new Date()}
+                mode="time"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={handleEndTimeChange}
+              />
+            )}
+
+            {modalItemType === 'food' && (
+              <>
+                <Text style={styles.modalLabel}>Food Image (Required)</Text>
+                <TouchableOpacity style={styles.imagePickerButton} onPress={handlePickImage}>
+                  {modalImage ? (
+                    <Image source={{ uri: modalImage }} style={styles.imagePreview} resizeMode="cover" />
+                  ) : (
+                    <View style={styles.imagePickerPlaceholder}>
+                      <Ionicons name="image-outline" size={32} color={colors.grayDark} />
+                      <Text style={styles.imagePickerText}>Tap to upload image</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
+
+            {modalItemType === 'blindbox' && (
+              <View style={styles.blindBoxInfoBox}>
+                <Ionicons name="gift-outline" size={24} color={colors.secondary} />
+                <Text style={styles.blindBoxInfoText}>
+                  Blind box items use a mystery box image automatically — no photo upload needed!
+                </Text>
+              </View>
+            )}
 
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.modalCancelButton} onPress={handleCancelModal}>
@@ -291,6 +498,7 @@ const VendorDashboard = ({ navigation, onLogout }) => {
                 <Text style={styles.modalSaveText}>Save</Text>
               </TouchableOpacity>
             </View>
+          </ScrollView>
           </View>
         </View>
       </Modal>
@@ -435,7 +643,8 @@ const styles = StyleSheet.create({
   editButton: { padding: 8 },
   emptyListingsText: { fontSize: 14, color: colors.grayDark, textAlign: 'center', paddingVertical: 20 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  modalContent: { backgroundColor: colors.white, borderRadius: 20, padding: 24, width: '85%', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 },
+  modalContent: { backgroundColor: colors.white, borderRadius: 20, padding: 24, width: '85%', height: '85%', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 },
+  modalScroll: { flex: 1 },
   modalTitle: { fontSize: 20, fontWeight: 'bold', color: colors.dark, marginBottom: 20, textAlign: 'center' },
   modalLabel: { fontSize: 14, fontWeight: '600', color: colors.dark, marginBottom: 6 },
   modalInput: { borderWidth: 1, borderColor: '#ddd', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, fontSize: 16, marginBottom: 16, backgroundColor: colors.gray },
@@ -444,6 +653,25 @@ const styles = StyleSheet.create({
   modalCancelText: { fontSize: 16, fontWeight: '600', color: colors.grayDark },
   modalSaveButton: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: colors.primary, marginLeft: 8, alignItems: 'center' },
   modalSaveText: { fontSize: 16, fontWeight: '600', color: colors.white },
+  itemTypeContainer: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  itemTypeButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 12, borderWidth: 1.5, borderColor: '#ddd', backgroundColor: colors.gray },
+  itemTypeButtonActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  itemTypeText: { fontSize: 13, fontWeight: '600', color: colors.grayDark },
+  itemTypeTextActive: { color: colors.white },
+  categoryContainer: { flexDirection: 'row', gap: 6, marginBottom: 16 },
+  categoryButton: { flex: 1, paddingVertical: 10, borderRadius: 10, borderWidth: 1.5, borderColor: '#ddd', backgroundColor: colors.gray, alignItems: 'center' },
+  categoryButtonActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  categoryText: { fontSize: 11, fontWeight: '600', color: colors.grayDark },
+  categoryTextActive: { color: colors.white },
+  imagePickerButton: { marginBottom: 16, borderRadius: 12, overflow: 'hidden' },
+  imagePickerPlaceholder: { alignItems: 'center', justifyContent: 'center', height: 150, borderWidth: 2, borderColor: '#ddd', borderStyle: 'dashed', borderRadius: 12, backgroundColor: colors.gray, gap: 8 },
+  imagePickerText: { fontSize: 14, color: colors.grayDark },
+  imagePreview: { width: '100%', height: 150, borderRadius: 12 },
+  blindBoxInfoBox: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 16, borderRadius: 12, backgroundColor: '#FFF3E0', marginBottom: 16 },
+  blindBoxInfoText: { flex: 1, fontSize: 13, color: colors.grayDark, lineHeight: 18 },
+  timePickerButton: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#ddd', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 16, backgroundColor: colors.gray, gap: 8 },
+  timePickerText: { fontSize: 16, color: colors.dark, fontWeight: '500' },
+  timePickerPlaceholder: { color: '#999', fontWeight: '400' },
   pickupModalContent: { backgroundColor: colors.white, borderRadius: 20, padding: 24, width: '85%', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 },
   pickupModalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   pickupModalTitle: { fontSize: 20, fontWeight: 'bold', color: colors.dark },
