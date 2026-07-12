@@ -19,6 +19,11 @@ import QRCodeScreen from './screens/QRCodeScreen';
 import AppNavigator from './navigation/AppNavigator';
 import VendorTabNavigator from './navigation/VendorTabNavigator';
 
+// Import Vendor Screens (for Stack navigation)
+import AddListingScreen from './screens/vendor/AddListingScreen';
+import VendorOrderDetailScreen from './screens/vendor/VendorOrderDetailScreen';
+import VendorScannerScreen from './screens/vendor/VendorScannerScreen';
+
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -42,6 +47,7 @@ export default function App() {
                     },
                   }}
                 >
+                  {/* Auth Screens */}
                   <Stack.Screen 
                     name="Login" 
                     component={LoginScreen} 
@@ -52,16 +58,22 @@ export default function App() {
                     component={RegisterScreen} 
                     options={{ headerShown: false }}
                   />
+
+                  {/* Main App (Customer) */}
                   <Stack.Screen 
                     name="MainApp" 
                     component={AppNavigator} 
                     options={{ headerShown: false }}
                   />
+
+                  {/* Vendor App (Tab Navigator) */}
                   <Stack.Screen 
                     name="VendorApp" 
                     component={VendorTabNavigator} 
                     options={{ headerShown: false }}
                   />
+
+                  {/* Shared Screens */}
                   <Stack.Screen 
                     name="Detail" 
                     component={ListingDetailScreen} 
@@ -76,6 +88,23 @@ export default function App() {
                     name="QRCode" 
                     component={QRCodeScreen} 
                     options={{ title: 'Pickup QR Code' }}
+                  />
+
+                  {/* Vendor Stack Screens (nested from Tab) */}
+                  <Stack.Screen 
+                    name="AddListing" 
+                    component={AddListingScreen} 
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen 
+                    name="VendorOrderDetail" 
+                    component={VendorOrderDetailScreen} 
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen 
+                    name="VendorScanner" 
+                    component={VendorScannerScreen} 
+                    options={{ headerShown: false }}
                   />
                 </Stack.Navigator>
               </NavigationContainer>
