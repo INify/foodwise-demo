@@ -14,11 +14,8 @@ const HomeScreen = ({ navigation }) => {
   const { listings, debugMode, toggleDebugMode } = useListings();
   const role = user?.role || 'customer';
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
   const [timeRange, setTimeRange] = useState('weekly');
   const impact = useImpact();
-
-  const categories = ['All', 'Halal', 'Non-Halal', 'Vegetarian'];
 
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
@@ -35,7 +32,6 @@ const HomeScreen = ({ navigation }) => {
 
   // Get closing soon items: urgent AND NOT blind box
   const getClosingSoonItems = () => {
-    // Filter: urgent === true AND isBlindBox !== true
     const urgentNonBlindBox = listings.filter(item => 
       item.urgent === true && item.isBlindBox !== true
     );
@@ -44,7 +40,6 @@ const HomeScreen = ({ navigation }) => {
       item.urgent !== true && item.isBlindBox !== true
     );
     
-    // Sort by countdown
     const sortByCountdown = (items) => {
       return [...items].sort((a, b) => {
         const getMinutes = (str) => {
@@ -66,11 +61,35 @@ const HomeScreen = ({ navigation }) => {
 
   const closingSoonItems = getClosingSoonItems();
 
+  // Get unique vendors for Nearby Vendors
+  const getUniqueVendors = () => {
+    const vendorMap = {};
+    listings.forEach(item => {
+      if (!vendorMap[item.vendorName]) {
+        vendorMap[item.vendorName] = {
+          name: item.vendorName,
+          image: item.vendorImage,
+        };
+      }
+    });
+    return Object.values(vendorMap).slice(0, 5);
+  };
+
+  const nearbyVendors = getUniqueVendors();
+
+  // Get popular items (by rating or just first 4)
+  const getPopularItems = () => {
+    // Sort by rating if available, or just take first 4
+    const sorted = [...listings].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    return sorted.slice(0, 4);
+  };
+
+  const popularItems = getPopularItems();
+
   const filteredListings = listings.filter((item) => {
     const matchesSearch = item.foodName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
     const matchesVendor = role === 'vendor' ? item.vendorName === (user?.name || 'Your Store') : true;
-    return matchesSearch && matchesCategory && matchesVendor;
+    return matchesSearch && matchesVendor;
   });
 
   const handleLogout = () => {
@@ -78,14 +97,12 @@ const HomeScreen = ({ navigation }) => {
     navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
   };
 
-  // Get display name from user object
   const getDisplayName = () => {
     if (user?.name) return user.name;
     if (user?.email) return user.email.split('@')[0];
     return 'User';
   };
 
-  // Navigate to Browse screen
   const navigateToBrowse = () => {
     navigation.navigate('Browse');
   };
@@ -98,7 +115,6 @@ const HomeScreen = ({ navigation }) => {
       <View style={styles.blindBoxSection}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Blind Box Deals</Text>
-          {/* 移除 See All */}
         </View>
         <ScrollView 
           horizontal 
@@ -174,6 +190,69 @@ const HomeScreen = ({ navigation }) => {
     );
   };
 
+  // Render Nearby Vendors
+  const renderNearbyVendors = () => {
+    if (nearbyVendors.length === 0) return null;
+
+    return (
+      <View style={styles.sectionContainer}>
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionTitleRow}>
+            <Ionicons name="storefront" size={18} color={colors.primary} />
+            <Text style={styles.sectionTitle}>Nearby Vendors</Text>
+          </View>
+          <TouchableOpacity onPress={navigateToBrowse}>
+            <Text style={styles.seeAllText}>See All →</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.vendorScrollContainer}>
+          {nearbyVendors.map((vendor) => (
+            <TouchableOpacity key={vendor.name} style={styles.vendorCard}>
+              <View style={styles.vendorAvatar}>
+                <Text style={styles.vendorEmoji}>🏪</Text>
+              </View>
+              <Text style={styles.vendorNameText} numberOfLines={1}>{vendor.name}</Text>
+              <Text style={styles.vendorBadge}>🌿 Eco Partner</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  };
+
+  // Render Popular Now
+  const renderPopularNow = () => {
+    if (popularItems.length === 0) return null;
+
+    return (
+      <View style={styles.sectionContainer}>
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionTitleRow}>
+            <Ionicons name="star" size={18} color={colors.gold} />
+            <Text style={styles.sectionTitle}>Popular Now</Text>
+          </View>
+          <TouchableOpacity onPress={navigateToBrowse}>
+            <Text style={styles.seeAllText}>See All →</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.popularScrollContainer}>
+          {popularItems.map((item) => (
+            <TouchableOpacity 
+              key={item.id} 
+              style={styles.popularCard}
+              onPress={() => navigation.navigate('Detail', { listing: item })}
+            >
+              <Text style={styles.popularEmoji}>⭐</Text>
+              <Text style={styles.popularName} numberOfLines={1}>{item.foodName}</Text>
+              <Text style={styles.popularVendor} numberOfLines={1}>{item.vendorName}</Text>
+              <Text style={styles.popularPrice}>RM {item.price.toFixed(2)}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  };
+
   // Main header renderer
   const renderHeader = () => (
     <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
@@ -207,10 +286,10 @@ const HomeScreen = ({ navigation }) => {
         />
       </View>
 
-      {/* Blind Box Deals - 水平滚动显示所有盲盒 */}
+      {/* Blind Box Deals */}
       {renderBlindBox()}
 
-      {/* Closing Soon Section */}
+      {/* Closing Soon */}
       {renderClosingSoon()}
 
       {/* Impact Card */}
@@ -222,30 +301,11 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.impactItem}><Text style={styles.impactNumber}>{impact[timeRange].vendors}</Text><Text style={styles.impactLabel}>Vendors</Text></View>
       </View>
 
-      {/* Time Range & Categories */}
-      <View style={styles.timeRangeRow}>
-        {['daily', 'weekly', 'monthly'].map((range) => (
-          <TouchableOpacity
-            key={range}
-            style={[styles.timeRangeButton, timeRange === range && styles.timeRangeButtonActive]}
-            onPress={() => setTimeRange(range)}
-          >
-            <Text style={[styles.timeRangeText, timeRange === range && styles.timeRangeTextActive]}>
-              {range.charAt(0).toUpperCase() + range.slice(1)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {/* Nearby Vendors */}
+      {renderNearbyVendors()}
 
-      <View style={styles.categoryContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {categories.map((category) => (
-            <TouchableOpacity key={category} style={[styles.categoryButton, selectedCategory === category && styles.categoryButtonActive]} onPress={() => setSelectedCategory(category)}>
-              <Text style={[styles.categoryText, selectedCategory === category && styles.categoryTextActive]}>{category}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+      {/* Popular Now */}
+      {renderPopularNow()}
     </View>
   );
 
@@ -285,7 +345,6 @@ const HomeScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.grayLight },
-
   listContent: { paddingBottom: 20 },
 
   header: {
@@ -302,7 +361,6 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
 
-  // Customer header
   customerHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -330,7 +388,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  // Section Header
   sectionContainer: {
     marginBottom: 16,
   },
@@ -356,7 +413,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 
-  // Blind Box Section - Horizontal Scroll
+  // Blind Box
   blindBoxSection: {
     marginBottom: 16,
   },
@@ -364,8 +421,6 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingRight: 16,
   },
-
-  // Blind Box Card
   blindBoxCard: {
     borderRadius: 16,
     overflow: 'hidden',
@@ -375,7 +430,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     padding: 16,
     borderRadius: 16,
-    height: '100%',
   },
   blindBoxContent: {
     flexDirection: 'row',
@@ -449,7 +503,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.6)',
   },
 
-  // Closing Soon Grid
+  // Closing Soon
   closingSoonGrid: {
     flexDirection: 'row',
     gap: 12,
@@ -483,53 +537,80 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.3)',
   },
 
-  // Time Range
-  timeRangeRow: {
-    flexDirection: 'row',
-    marginBottom: 12,
-    gap: 8,
+  // Nearby Vendors
+  vendorScrollContainer: {
+    gap: 12,
+    paddingRight: 16,
   },
-  timeRangeButton: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: colors.grayLight,
+  vendorCard: {
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: 12,
     alignItems: 'center',
+    width: 100,
+    borderWidth: 1,
+    borderColor: colors.grayLight,
   },
-  timeRangeButtonActive: {
-    backgroundColor: colors.primary,
+  vendorAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.grayLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 6,
   },
-  timeRangeText: {
-    fontSize: 13,
+  vendorEmoji: {
+    fontSize: 24,
+  },
+  vendorNameText: {
+    fontSize: 12,
     fontWeight: '600',
-    color: colors.grayDark,
+    color: colors.dark,
+    textAlign: 'center',
   },
-  timeRangeTextActive: {
-    color: colors.white,
+  vendorBadge: {
+    fontSize: 9,
+    color: colors.primary,
+    fontWeight: '600',
+    marginTop: 2,
   },
 
-  // Categories
-  categoryContainer: {
-    flexDirection: 'row',
-    marginBottom: 8,
+  // Popular Now
+  popularScrollContainer: {
+    gap: 12,
+    paddingRight: 16,
   },
-  categoryButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
-    backgroundColor: colors.grayLight,
+  popularCard: {
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: 12,
+    width: 120,
+    borderWidth: 1,
+    borderColor: colors.grayLight,
+    alignItems: 'center',
   },
-  categoryButtonActive: {
-    backgroundColor: colors.primary,
+  popularEmoji: {
+    fontSize: 24,
+    marginBottom: 4,
   },
-  categoryText: {
-    fontSize: 14,
-    fontWeight: '500',
+  popularName: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.dark,
+    textAlign: 'center',
+  },
+  popularVendor: {
+    fontSize: 10,
     color: colors.grayDark,
+    textAlign: 'center',
+    marginTop: 2,
   },
-  categoryTextActive: {
-    color: colors.white,
+  popularPrice: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.primary,
+    marginTop: 4,
   },
 
   // Empty State
