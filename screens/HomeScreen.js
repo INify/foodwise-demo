@@ -43,12 +43,19 @@ const HomeScreen = ({ navigation }) => {
     navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
   };
 
+  // Get display name from user object
+  const getDisplayName = () => {
+    if (user?.name) return user.name;
+    if (user?.email) return user.email.split('@')[0];
+    return 'User';
+  };
+
   // Customer View (original UI)
   const renderHeader = () => (
     <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
       {/* Customer Header */}
       <View style={styles.customerHeaderRow}>
-        <Text style={styles.customerGreeting}>👋 Welcome back!</Text>
+        <Text style={styles.customerGreeting}>👋 Welcome back, {getDisplayName()}!</Text>
         <View style={styles.headerRight}>
           <TouchableOpacity style={[styles.debugButton, debugMode && styles.debugButtonActive]} onPress={toggleDebugMode}>
             <Ionicons name="bug" size={18} color={debugMode ? colors.white : colors.grayDark} />
