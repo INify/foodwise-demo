@@ -188,5 +188,4 @@ This project is for educational purposes as part of a university assignment.
 
 ## Acknowledgments
 
-- Original repository by [INify](https://github.com/INify)
 - Mystery box icons by [syafii5758 - Flaticon](https://www.flaticon.com/)
