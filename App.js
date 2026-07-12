@@ -11,13 +11,11 @@ import { OrdersProvider } from './context/OrdersContext';
 
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
-import HomeScreen from './screens/HomeScreen';
-import BrowseScreen from './screens/BrowseScreen'; // 新增
 import ListingDetailScreen from './screens/ListingDetailScreen';
 import CartScreen from './screens/CartScreen';
 import QRCodeScreen from './screens/QRCodeScreen';
-import ImpactScreen from './screens/ImpactScreen';
 import VendorDrawerNavigator from './navigation/VendorDrawerNavigator';
+import AppNavigator from './navigation/AppNavigator';
 
 const Stack = createStackNavigator();
 
@@ -53,13 +51,8 @@ export default function App() {
                     options={{ headerShown: false }}
                   />
                   <Stack.Screen 
-                    name="Home" 
-                    component={HomeScreen} 
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen 
-                    name="Browse" 
-                    component={BrowseScreen} 
+                    name="MainApp" 
+                    component={AppNavigator} 
                     options={{ headerShown: false }}
                   />
                   <Stack.Screen 
@@ -76,11 +69,6 @@ export default function App() {
                     name="QRCode" 
                     component={QRCodeScreen} 
                     options={{ title: 'Pickup QR Code' }}
-                  />
-                  <Stack.Screen 
-                    name="Impact" 
-                    component={ImpactScreen} 
-                    options={{ title: 'Your Impact' }}
                   />
                   <Stack.Screen 
                     name="VendorDrawer" 
