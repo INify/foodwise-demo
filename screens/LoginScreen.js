@@ -67,7 +67,13 @@ const LoginScreen = ({ navigation }) => {
     // Pass the name to login - for customers, use email prefix as display name
     const displayName = role === 'vendor' ? name : email.split('@')[0];
     login(email, role, role === 'vendor' ? name : displayName);
-    navigation.navigate(role === 'vendor' ? 'VendorDrawer' : 'Home', { role });
+    
+    // Navigate to appropriate app based on role
+    if (role === 'vendor') {
+      navigation.navigate('VendorApp', { role });
+    } else {
+      navigation.navigate('MainApp', { role });
+    }
   };
 
   // Clear email error when user starts typing
@@ -156,64 +162,24 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white },
   scrollContent: { flexGrow: 1, padding: 24, justifyContent: 'center' },
   logoContainer: { alignItems: 'center', marginBottom: 40 },
-  logoCircle: { 
-    width: 100, height: 100, borderRadius: 50, 
-    backgroundColor: colors.primary,
-    justifyContent: 'center', alignItems: 'center', 
-    marginBottom: 16 
-  },
+  logoCircle: { width: 100, height: 100, borderRadius: 50, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   logoText: { fontSize: 48 },
-  appName: { 
-    fontSize: 32, fontWeight: 'bold', 
-    color: colors.primary,
-    marginBottom: 4 
-  },
+  appName: { fontSize: 32, fontWeight: 'bold', color: colors.primary, marginBottom: 4 },
   tagline: { fontSize: 16, color: colors.grayDark },
   form: { width: '100%' },
-  roleContainer: { 
-    flexDirection: 'row', 
-    backgroundColor: colors.grayLight, 
-    borderRadius: 12, padding: 4, 
-    marginBottom: 24 
-  },
-  roleButton: { 
-    flex: 1, paddingVertical: 12, 
-    borderRadius: 8, alignItems: 'center' 
-  },
-  roleButtonActive: { 
-    backgroundColor: colors.white, 
-    shadowColor: colors.shadow, 
-    shadowOffset: { width: 0, height: 2 }, 
-    shadowOpacity: 0.1, shadowRadius: 4, 
-    elevation: 2 
-  },
-  roleText: { 
-    fontSize: 14, color: colors.grayDark, 
-    fontWeight: '500' 
-  },
-  roleTextActive: { 
-    color: colors.primary,
-    fontWeight: '600' 
-  },
+  roleContainer: { flexDirection: 'row', backgroundColor: colors.grayLight, borderRadius: 12, padding: 4, marginBottom: 24 },
+  roleButton: { flex: 1, paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
+  roleButtonActive: { backgroundColor: colors.white, shadowColor: colors.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
+  roleText: { fontSize: 14, color: colors.grayDark, fontWeight: '500' },
+  roleTextActive: { color: colors.primary, fontWeight: '600' },
   inputContainer: { marginBottom: 20 },
-  label: { 
-    fontSize: 14, fontWeight: '600', 
-    color: colors.dark, 
-    marginBottom: 8 
-  },
-  input: { 
-    borderWidth: 1, borderColor: colors.gray, 
-    borderRadius: 12, padding: 14, 
-    fontSize: 16, backgroundColor: colors.white,
-  },
+  label: { fontSize: 14, fontWeight: '600', color: colors.dark, marginBottom: 8 },
+  input: { borderWidth: 1, borderColor: colors.gray, borderRadius: 12, padding: 14, fontSize: 16, backgroundColor: colors.white },
   inputError: { borderColor: colors.danger, borderWidth: 1.5 },
   errorText: { color: colors.danger, fontSize: 12, marginTop: 4 },
   registerLink: { marginTop: 20, alignItems: 'center' },
   registerText: { fontSize: 14, color: colors.grayDark },
-  registerHighlight: { 
-    color: colors.secondary, 
-    fontWeight: 'bold' 
-  },
+  registerHighlight: { color: colors.secondary, fontWeight: 'bold' },
 });
 
 export default LoginScreen;
