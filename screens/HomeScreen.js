@@ -30,31 +30,31 @@ const HomeScreen = ({ navigation }) => {
     }, 1500);
   }, []);
 
-  // Get 2 items that are closing soon (urgent first, then by soonest)
-  const getClosingSoonItems = () => {
-    // Filter for urgent items first, then sort by countdown time
-    const urgentItems = listings.filter(item => item.urgent === true);
-    const nonUrgentItems = listings.filter(item => item.urgent !== true);
-    
-    // Sort urgent items by countdown (assuming countdown is a string like "1h 24m")
-    const sortByCountdown = (items) => {
-      return items.sort((a, b) => {
-        const getMinutes = (str) => {
-          if (!str) return 9999;
-          const hours = parseInt(str.match(/(\d+)h/)?.[1] || '0');
-          const mins = parseInt(str.match(/(\d+)m/)?.[1] || '0');
-          return hours * 60 + mins;
-        };
-        return getMinutes(a.countdown) - getMinutes(b.countdown);
-      });
-    };
-
-    const sortedUrgent = sortByCountdown([...urgentItems]);
-    const sortedNonUrgent = sortByCountdown([...nonUrgentItems]);
-    
-    const combined = [...sortedUrgent, ...sortedNonUrgent];
-    return combined.slice(0, 2);
+// Get 2 items that are closing soon (urgent first, then by soonest)
+const getClosingSoonItems = () => {
+  // Filter for urgent items first
+  const urgentItems = listings.filter(item => item.urgent === true);
+  const nonUrgentItems = listings.filter(item => item.urgent !== true);
+  
+  // Sort urgent items by countdown (parse time like "45m" or "1h 24m")
+  const sortByCountdown = (items) => {
+    return [...items].sort((a, b) => {
+      const getMinutes = (str) => {
+        if (!str) return 9999;
+        const hours = parseInt(str.match(/(\d+)h/)?.[1] || '0');
+        const mins = parseInt(str.match(/(\d+)m/)?.[1] || '0');
+        return hours * 60 + mins;
+      };
+      return getMinutes(a.countdown) - getMinutes(b.countdown);
+    });
   };
+
+  const sortedUrgent = sortByCountdown(urgentItems);
+  const sortedNonUrgent = sortByCountdown(nonUrgentItems);
+  
+  const combined = [...sortedUrgent, ...sortedNonUrgent];
+  return combined.slice(0, 2);
+};
 
   const closingSoonItems = getClosingSoonItems();
 
