@@ -30,7 +30,12 @@ const VendorListingsScreen = ({ navigation }) => {
     ? Math.min((vendorListings.length / ecoLevel.next) * 100, 100) 
     : 0;
 
-  // --- Modal States ---
+  // --- Navigate to Add Listing Screen ---
+  const handleAddNew = () => {
+    navigation.navigate('AddListing');
+  };
+
+  // --- Edit Modal States (保留编辑功能) ---
   const [modalVisible, setModalVisible] = useState(false);
   const [editingListing, setEditingListing] = useState(null);
   const [modalFoodName, setModalFoodName] = useState('');
@@ -50,21 +55,6 @@ const VendorListingsScreen = ({ navigation }) => {
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
-  };
-
-  const handleOpenAddModal = () => {
-    setEditingListing(null);
-    setModalFoodName('');
-    setModalPrice('');
-    setModalPickupStart(null);
-    setModalPickupEnd(null);
-    setShowStartPicker(false);
-    setShowEndPicker(false);
-    setModalItemType('food');
-    setModalCategory('Halal');
-    setModalImage(null);
-    setModalOriginalPrice('');
-    setModalVisible(true);
   };
 
   const parseTimeString = (timeStr) => {
@@ -244,13 +234,13 @@ const VendorListingsScreen = ({ navigation }) => {
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Your Listings</Text>
-            <TouchableOpacity style={styles.addButton} onPress={handleOpenAddModal}>
+            <TouchableOpacity style={styles.addButton} onPress={handleAddNew}>
               <Ionicons name="add-circle" size={22} color={colors.primary} />
               <Text style={styles.addButtonText}>Add New</Text>
             </TouchableOpacity>
           </View>
 
-          {/* --- Badge Progress in Listings --- */}
+          {/* Badge Progress in Listings */}
           <View style={styles.listingsBadgeContainer}>
             <View style={styles.listingsBadgeRow}>
               <Text style={styles.listingsBadgeLevel}>{ecoLevel.level}</Text>
@@ -296,7 +286,7 @@ const VendorListingsScreen = ({ navigation }) => {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* --- Modal --- */}
+      {/* Edit Modal (保留，用于编辑已有 listing) */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -512,7 +502,7 @@ const styles = StyleSheet.create({
     marginLeft: 4 
   },
 
-  // --- Badge Progress Styles ---
+  // Badge Progress Styles
   listingsBadgeContainer: { 
     backgroundColor: '#F5F8F5', 
     borderRadius: 12, 
@@ -599,7 +589,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20 
   },
 
-  // --- Modal Styles ---
+  // Modal Styles
   modalOverlay: { 
     flex: 1, 
     backgroundColor: 'rgba(0,0,0,0.5)', 
@@ -785,10 +775,3 @@ const styles = StyleSheet.create({
   },
   blindBoxInfoText: { 
     flex: 1, 
-    fontSize: 13, 
-    color: colors.grayDark, 
-    lineHeight: 18 
-  },
-});
-
-export default VendorListingsScreen;
