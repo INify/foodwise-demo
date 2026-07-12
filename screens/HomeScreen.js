@@ -30,31 +30,39 @@ const HomeScreen = ({ navigation }) => {
     }, 1500);
   }, []);
 
-// Get 2 items that are closing soon (urgent first, then by soonest)
-const getClosingSoonItems = () => {
-  // Filter for urgent items first
-  const urgentItems = listings.filter(item => item.urgent === true);
-  const nonUrgentItems = listings.filter(item => item.urgent !== true);
-  
-  // Sort urgent items by countdown (parse time like "45m" or "1h 24m")
-  const sortByCountdown = (items) => {
-    return [...items].sort((a, b) => {
-      const getMinutes = (str) => {
-        if (!str) return 9999;
-        const hours = parseInt(str.match(/(\d+)h/)?.[1] || '0');
-        const mins = parseInt(str.match(/(\d+)m/)?.[1] || '0');
-        return hours * 60 + mins;
-      };
-      return getMinutes(a.countdown) - getMinutes(b.countdown);
-    });
-  };
+  // Get blind box items (isBlindBox === true)
+  const blindBoxItems = listings.filter(item => item.isBlindBox === true);
 
-  const sortedUrgent = sortByCountdown(urgentItems);
-  const sortedNonUrgent = sortByCountdown(nonUrgentItems);
-  
-  const combined = [...sortedUrgent, ...sortedNonUrgent];
-  return combined.slice(0, 2);
-};
+  // Get closing soon items: urgent AND NOT blind box
+  const getClosingSoonItems = () => {
+    // Filter: urgent === true AND isBlindBox !== true
+    const urgentNonBlindBox = listings.filter(item => 
+      item.urgent === true && item.isBlindBox !== true
+    );
+    
+    const nonUrgentNonBlindBox = listings.filter(item => 
+      item.urgent !== true && item.isBlindBox !== true
+    );
+    
+    // Sort by countdown
+    const sortByCountdown = (items) => {
+      return [...items].sort((a, b) => {
+        const getMinutes = (str) => {
+          if (!str) return 9999;
+          const hours = parseInt(str.match(/(\d+)h/)?.[1] || '0');
+          const mins = parseInt(str.match(/(\d+)m/)?.[1] || '0');
+          return hours * 60 + mins;
+        };
+        return getMinutes(a.countdown) - getMinutes(b.countdown);
+      });
+    };
+
+    const sortedUrgent = sortByCountdown(urgentNonBlindBox);
+    const sortedNonUrgent = sortByCountdown(nonUrgentNonBlindBox);
+    
+    const combined = [...sortedUrgent, ...sortedNonUrgent];
+    return combined.slice(0, 2);
+  };
 
   const closingSoonItems = getClosingSoonItems();
 
@@ -83,36 +91,57 @@ const getClosingSoonItems = () => {
   };
 
   // Render Blind Box section
-  const renderBlindBox = () => (
-    <TouchableOpacity 
-      style={styles.blindBoxCard}
-      onPress={() => navigation.navigate('Browse')}
-      activeOpacity={0.9}
-    >
-      <View style={styles.blindBoxGradient}>
-        <View style={styles.blindBoxContent}>
-          <View style={styles.blindBoxIconContainer}>
-            <Text style={styles.blindBoxIcon}>🎁</Text>
-          </View>
-          <View style={styles.blindBoxInfo}>
-            <View style={styles.blindBoxTagContainer}>
-              <Text style={styles.blindBoxTag}>BLIND BOX</Text>
-              <Text style={styles.blindBoxCount}>8 left</Text>
-            </View>
-            <Text style={styles.blindBoxTitle}>Mystery Meal Box</Text>
-            <Text style={styles.blindBoxSubtext}>Worth RM 15+ · Pickup 8:00 – 9:30 PM</Text>
-          </View>
-          <View style={styles.blindBoxPriceContainer}>
-            <Text style={styles.blindBoxPrice}>RM 5.00</Text>
-            <View style={styles.blindBoxTimeContainer}>
-              <Ionicons name="time-outline" size={12} color="rgba(255,255,255,0.6)" />
-              <Text style={styles.blindBoxTime}>2h 05m</Text>
-            </View>
-          </View>
+  const renderBlindBox = () => {
+    if (blindBoxItems.length === 0) return null;
+
+    return (
+      <View style={styles.blindBoxSection}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Blind Box Deals</Text>
+          {/* 移除 See All */}
         </View>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.blindBoxScrollContainer}
+        >
+          {blindBoxItems.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.blindBoxCard}
+              onPress={() => navigation.navigate('Detail', { listing: item })}
+              activeOpacity={0.9}
+            >
+              <View style={styles.blindBoxGradient}>
+                <View style={styles.blindBoxContent}>
+                  <View style={styles.blindBoxIconContainer}>
+                    <Text style={styles.blindBoxIcon}>🎁</Text>
+                  </View>
+                  <View style={styles.blindBoxInfo}>
+                    <View style={styles.blindBoxTagContainer}>
+                      <Text style={styles.blindBoxTag}>BLIND BOX</Text>
+                      <Text style={styles.blindBoxCount}>{item.quantity || 0} left</Text>
+                    </View>
+                    <Text style={styles.blindBoxTitle} numberOfLines={1}>{item.foodName}</Text>
+                    <Text style={styles.blindBoxSubtext} numberOfLines={1}>
+                      Worth RM {(item.originalPrice || 0).toFixed(2)}+ · {item.vendorName}
+                    </Text>
+                  </View>
+                  <View style={styles.blindBoxPriceContainer}>
+                    <Text style={styles.blindBoxPrice}>RM {item.price.toFixed(2)}</Text>
+                    <View style={styles.blindBoxTimeContainer}>
+                      <Ionicons name="time-outline" size={12} color="rgba(255,255,255,0.6)" />
+                      <Text style={styles.blindBoxTime}>{item.countdown || 'Soon'}</Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
-    </TouchableOpacity>
-  );
+    );
+  };
 
   // Render Closing Soon section
   const renderClosingSoon = () => {
@@ -178,16 +207,8 @@ const getClosingSoonItems = () => {
         />
       </View>
 
-      {/* Blind Box Deals - NOW AT TOP */}
-      <View style={styles.blindBoxSection}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Blind Box Deals</Text>
-          <TouchableOpacity onPress={navigateToBrowse}>
-            <Text style={styles.seeAllText}>See All →</Text>
-          </TouchableOpacity>
-        </View>
-        {renderBlindBox()}
-      </View>
+      {/* Blind Box Deals - 水平滚动显示所有盲盒 */}
+      {renderBlindBox()}
 
       {/* Closing Soon Section */}
       {renderClosingSoon()}
@@ -335,21 +356,26 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 
-  // Blind Box Section
+  // Blind Box Section - Horizontal Scroll
   blindBoxSection: {
     marginBottom: 16,
+  },
+  blindBoxScrollContainer: {
+    gap: 12,
+    paddingRight: 16,
   },
 
   // Blind Box Card
   blindBoxCard: {
     borderRadius: 16,
     overflow: 'hidden',
-    marginBottom: 4,
+    width: 280,
   },
   blindBoxGradient: {
     backgroundColor: colors.primary,
     padding: 16,
     borderRadius: 16,
+    height: '100%',
   },
   blindBoxContent: {
     flexDirection: 'row',
@@ -357,9 +383,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   blindBoxIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.12)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
@@ -367,7 +393,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   blindBoxIcon: {
-    fontSize: 28,
+    fontSize: 24,
   },
   blindBoxInfo: {
     flex: 1,
@@ -379,47 +405,47 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   blindBoxTag: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '800',
     color: colors.secondary,
     backgroundColor: 'rgba(232, 93, 58, 0.2)',
     borderWidth: 1,
     borderColor: 'rgba(232, 93, 58, 0.3)',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
     borderRadius: 4,
     letterSpacing: 0.5,
   },
   blindBoxCount: {
-    fontSize: 10,
+    fontSize: 9,
     color: 'rgba(255,255,255,0.5)',
   },
   blindBoxTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '800',
     color: colors.white,
   },
   blindBoxSubtext: {
-    fontSize: 11,
+    fontSize: 10,
     color: 'rgba(255,255,255,0.6)',
-    marginTop: 2,
+    marginTop: 1,
   },
   blindBoxPriceContainer: {
     alignItems: 'flex-end',
   },
   blindBoxPrice: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     color: colors.white,
   },
   blindBoxTimeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
     marginTop: 2,
   },
   blindBoxTime: {
-    fontSize: 10,
+    fontSize: 9,
     color: 'rgba(255,255,255,0.6)',
   },
 
