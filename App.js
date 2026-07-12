@@ -14,8 +14,10 @@ import RegisterScreen from './screens/RegisterScreen';
 import ListingDetailScreen from './screens/ListingDetailScreen';
 import CartScreen from './screens/CartScreen';
 import QRCodeScreen from './screens/QRCodeScreen';
-import VendorDrawerNavigator from './navigation/VendorDrawerNavigator';
+
+// Import Navigators
 import AppNavigator from './navigation/AppNavigator';
+import VendorDrawerNavigator from './navigation/VendorDrawerNavigator';
 
 const Stack = createStackNavigator();
 
@@ -56,6 +58,11 @@ export default function App() {
                     options={{ headerShown: false }}
                   />
                   <Stack.Screen 
+                    name="VendorApp" 
+                    component={VendorDrawerNavigator} 
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen 
                     name="Detail" 
                     component={ListingDetailScreen} 
                     options={{ title: 'Food Details' }}
@@ -69,11 +76,6 @@ export default function App() {
                     name="QRCode" 
                     component={QRCodeScreen} 
                     options={{ title: 'Pickup QR Code' }}
-                  />
-                  <Stack.Screen 
-                    name="VendorDrawer" 
-                    component={VendorDrawerNavigator} 
-                    options={{ headerShown: false }}
                   />
                 </Stack.Navigator>
               </NavigationContainer>
