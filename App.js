@@ -17,7 +17,7 @@ import QRCodeScreen from './screens/QRCodeScreen';
 
 // Import Navigators
 import AppNavigator from './navigation/AppNavigator';
-import VendorDrawerNavigator from './navigation/VendorDrawerNavigator';
+import VendorTabNavigator from './navigation/VendorTabNavigator';
 
 const Stack = createStackNavigator();
 
@@ -59,7 +59,7 @@ export default function App() {
                   />
                   <Stack.Screen 
                     name="VendorApp" 
-                    component={VendorDrawerNavigator} 
+                    component={VendorTabNavigator} 
                     options={{ headerShown: false }}
                   />
                   <Stack.Screen 
