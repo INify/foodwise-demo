@@ -2,11 +2,12 @@ import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { colors } from '../styles/colors';
 
-const Button = ({ title, onPress, variant = 'primary', loading = false, disabled = false, style = {}, textStyle = {} }) => {
+const Button = ({ title, onPress, variant = 'secondary', loading = false, disabled = false, style = {}, textStyle = {} }) => {
   const getBackgroundColor = () => {
     if (disabled) return colors.grayDark;
     if (variant === 'secondary') return colors.secondary;
     if (variant === 'outline') return 'transparent';
+    // Primary variant - keep as green for secondary buttons
     return colors.primary;
   };
 
@@ -38,8 +39,24 @@ const Button = ({ title, onPress, variant = 'primary', loading = false, disabled
 };
 
 const styles = StyleSheet.create({
-  button: { paddingVertical: 14, paddingHorizontal: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', minHeight: 50, shadowColor: colors.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 },
-  text: { fontSize: 16, fontWeight: '600', letterSpacing: 0.5 },
+  button: { 
+    paddingVertical: 14, 
+    paddingHorizontal: 24, 
+    borderRadius: 12, 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    minHeight: 50, 
+    shadowColor: colors.shadow, 
+    shadowOffset: { width: 0, height: 2 }, 
+    shadowOpacity: 0.1, 
+    shadowRadius: 4, 
+    elevation: 3 
+  },
+  text: { 
+    fontSize: 16, 
+    fontWeight: '600', 
+    letterSpacing: 0.5 
+  },
 });
 
 export default Button;

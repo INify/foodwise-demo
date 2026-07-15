@@ -15,6 +15,8 @@ export const mockListings = [
     image: 'https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400&h=300&fit=crop',
     isBlindBox: false,
     distance: '0.8 km',
+    urgent: false,        
+    countdown: '2h 30m',  
   },
   {
     id: '2',
@@ -32,6 +34,8 @@ export const mockListings = [
     image: require('../assets/images/mystery-box.png'),
     isBlindBox: true,
     distance: '1.2 km',
+    urgent: true,         
+    countdown: '45m',    
   },
   {
     id: '3',
@@ -49,6 +53,8 @@ export const mockListings = [
     image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400&h=300&fit=crop',
     isBlindBox: false,
     distance: '2.1 km',
+    urgent: false,       
+    countdown: '3h 15m',  
   },
   {
     id: '4',
@@ -66,6 +72,8 @@ export const mockListings = [
     image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400&h=300&fit=crop',
     isBlindBox: false,
     distance: '0.5 km',
+    urgent: true,        
+    countdown: '1h 10m', 
   },
   {
     id: '5',
@@ -83,6 +91,8 @@ export const mockListings = [
     image: require('../assets/images/mystery-box.png'),
     isBlindBox: true,
     distance: '3.0 km',
+    urgent: false,       
+    countdown: '4h 20m',  
   },
   {
     id: '6',
@@ -100,6 +110,8 @@ export const mockListings = [
     image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&h=300&fit=crop',
     isBlindBox: false,
     distance: '1.5 km',
+    urgent: false,       
+    countdown: '5h 00m',  
   },
 ];
 
